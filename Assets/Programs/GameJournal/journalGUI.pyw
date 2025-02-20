@@ -8,9 +8,10 @@ from configparser import ConfigParser
 
 config = ConfigParser(interpolation=None)
 
+p = Path(__file__).parent / "Journal Assets" / "config.ini"
 
 class GUI:
-    p = Path(__file__).parent / "Journal Assets" / "config.ini"
+    
     if not p.exists():
         config.add_section("IN PROGRESS")
         # config.set("IN PROGRESS")
@@ -259,7 +260,7 @@ class GUI:
         return self.theme_default
 
     def load_games(self):
-        config.read("config.ini")
+        config.read(p)
         try:
             for game in sorted(config["IN PROGRESS"]):
                 self.progress_list.insert(tk.END, game.title())
@@ -294,12 +295,12 @@ class GUI:
              if not enter_game.get().strip():
                  messagebox.showerror(title="Error", message="Must insert Game Name")
                  return
-             config.read("config.ini")
+             config.read(p)
 
              if self.add_location == "in progress":
                 if messagebox.askyesno(title="Confirm Submission", message=f"Would you like to add:\n'{enter_game.get()}'\nto Games in Progress"):
                     config.set("IN PROGRESS", enter_game.get().strip(), "in progress")
-                    with open("config.ini", "w") as config_file:
+                    with open(p, "w") as config_file:
                         config.write(config_file)
                     self.progress_list.delete(0, tk.END)
                     for game in sorted(config["IN PROGRESS"]):
@@ -312,7 +313,7 @@ class GUI:
              elif self.add_location == "incomplete":
                 if messagebox.askyesno(title="Confirm Submission", message=f"Would you like to add:\n'{enter_game.get()}'\nto Incomplete Games"):
                     config.set("INCOMPLETE", enter_game.get().strip(), "incomplete")
-                    with open("config.ini", "w") as config_file:
+                    with open(p, "w") as config_file:
                         config.write(config_file)
                     self.incomplete_list.delete(0, tk.END)
                     for game in sorted(config["INCOMPLETE"]):
@@ -325,7 +326,7 @@ class GUI:
              elif self.add_location == "completed":
                 if messagebox.askyesno(title="Confirm Submission", message=f"Would you like to add:\n'{enter_game.get()}'\nto Completed Games"):
                     config.set("COMPLETED", enter_game.get().strip(), "completed")
-                    with open("config.ini", "w") as config_file:
+                    with open(p, "w") as config_file:
                         config.write(config_file)
                     self.completed_list.delete(0, tk.END)
                     for game in sorted(config["COMPLETED"]):
@@ -392,9 +393,9 @@ class GUI:
         def submit_review():
             full_review = f"{review_text.get("1.0", tk.END).strip().replace("\n", "")} | Rating: {review_number.get():.1f}"
             if messagebox.askyesno(title="Confirm", message="Would you like to submit this review?"):
-                config.read("config.ini")
+                config.read(p)
                 config.set("REVIEWS", game.lower(), full_review)
-                with open("config.ini", "w") as config_file:
+                with open(p, "w") as config_file:
                         config.write(config_file)
                 messagebox.showinfo(title="Success", message="Added Game Review")
                 review_popup.destroy()
@@ -470,7 +471,7 @@ class GUI:
         
         def submit_status():
             if messagebox.askyesno(title="Confirm", message="Are you sure you would like to update the games status?"):
-                config.read("config.ini")
+                config.read(p)
                 if item in config[current_page.upper()]:
                     config.remove_option(current_page.upper(), item)
                     config.set(selected_option.get().upper(), item, selected_option.get().lower())
@@ -478,7 +479,7 @@ class GUI:
                     messagebox.showerror(title="Error", message="Item not found in config file")
                     return
 
-                with open("config.ini", "w") as configfile:
+                with open(p, "w") as configfile:
                     config.write(configfile)
 
                 if current_page.lower() == "in progress" or selected_option.get().lower() == "in progress":
@@ -535,7 +536,7 @@ class GUI:
         
         
         if messagebox.askyesno(title="Confirm", message=f"Are you sure you would like to Remove {item.title()}?"):
-            config.read("config.ini")
+            config.read(p)
             if item in config[current_page.upper()]:
                 config.remove_option(current_page.upper(), item)
                 if item in config["REVIEWS"]:
@@ -544,7 +545,7 @@ class GUI:
                 messagebox.showerror(title="Error", message="Item not found in config file")
                 return
 
-            with open("config.ini", "w") as configfile:
+            with open(p, "w") as configfile:
                 config.write(configfile)
 
             if current_page.lower() == "in progress":
