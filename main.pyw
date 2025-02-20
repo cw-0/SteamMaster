@@ -57,7 +57,7 @@ class GUI:
 
         self.root = tk.Tk()
         self.root.title("Steam Master")
-        self.root.geometry("1200x800")
+        self.root.geometry("1400x800")
         self.root.minsize(800, 625)
 
         logo_tk = ImageTk.PhotoImage(logo_image.resize((100, 100)))
@@ -637,14 +637,122 @@ class GUI:
         
 
     def sorting_func(self):
+        def get_rows_with_zero_minutes(treeview, column_name="playtime_forever"):
+            zero_rows = []
+            for item in treeview.get_children():
+                value = treeview.item(item, "values")[treeview["columns"].index(column_name)]
+                
+                if value == "0 Minutes" or value == 0:
+                    zero_rows.append(item)
+            
+            return zero_rows
+        
+        def get_playtime_total(treeview, column_name="playtime_forever"):
+            hours = 0
+            minutes = 0
+
+            for item in treeview.get_children():
+                value = treeview.item(item, "values")[treeview["columns"].index(column_name)]
+                try:
+                    if "Hours &" in value:
+                        hours_str, minutes_str = value.split(" Hours & ")
+                        hours += int(hours_str)
+                        minutes += int(minutes_str.replace(" Minutes", ""))
+
+                    elif "Hours" in value:
+                        hours_str = value.split(" Hours")[0]
+                        hours += int(hours_str)
+                    elif "Minutes" in value:
+                        minutes_str = value.split(" Minutes")[0]
+                        minutes += int(minutes_str)
+                    elif "Minute" in value:
+                        minutes_str = value.split(" Minute")[0]
+                        minutes += int(minutes_str)
+                    else:
+                        continue
+                except IndexError:
+                    print(f"Error with value: {value}")
+            
+            additional_hours = minutes // 60
+            remaining_minutes = minutes % 60
+
+            hours += additional_hours
+
+            return f"{hours} Hours & {remaining_minutes} Minutes"
+        
+        def get_timetobeat_total(treeview, column_name="main_story"):
+            hours = 0
+            minutes = 0
+
+            for item in treeview.get_children():
+                value = treeview.item(item, "values")[treeview["columns"].index(column_name)]
+                try:
+                    if "Hours" in value:
+                        hours_str = value.split(" Hours")[0]
+                        hours += float(hours_str)
+                    else:
+                        continue
+                except IndexError:
+                    print(f"Error with value: {value}")
+
+            return f"{hours} Hours"
+        
+
+        zero_rows = get_rows_with_zero_minutes(self.treeview)
+        total_time_played_calc = get_playtime_total(self.treeview)
+        total_time_to_beat_calc = get_timetobeat_total(self.treeview)
+
+        bottom_frame = tk.Frame(self.root)
+        bottom_frame.config(bg="#136b9d")
+        bottom_frame.grid(row=1, column=1)
 
         sort_btn = tk.Button(
-            self.root,
+            bottom_frame,
             text="Sort By",
             font=("Arial", 16),
             width=10,
             command=self.sort_window)
-        sort_btn.grid(row=1, column=1)
+        sort_btn.grid(row=0, column=3, pady=20)
+
+        totals_frame = tk.Frame(bottom_frame)
+        totals_frame.grid(row=1, column=3)
+
+        total_games = tk.Label(
+            totals_frame,
+            text=f"| Games: {len(self.treeview.get_children())} | ",
+            font=("Arial", 16),
+            bg="#136b9d",
+            fg="white"
+        )
+        total_games.grid(row=0, column=0)
+
+        total_unplayed = tk.Label(
+            totals_frame,
+            text=f" | Games Unplayed: {len(zero_rows)} |",
+            font=("Arial", 16),
+            bg="#136b9d",
+            fg="white"
+        )
+        total_unplayed.grid(row=0, column=1)
+
+        total_time_played = tk.Label(
+            totals_frame,
+            text=f"| Time Played: {total_time_played_calc} | ",
+            font=("Arial", 16),
+            bg="#136b9d",
+            fg="white"
+        )
+        total_time_played.grid(row=0, column=2)
+
+        total_time_to_beat = tk.Label(
+            totals_frame,
+            text=f"| Time To Beat Library: {total_time_to_beat_calc} | ",
+            font=("Arial", 16),
+            bg="#136b9d",
+            fg="white"
+        )
+        total_time_to_beat.grid(row=0, column=3)
+        
 
     def sort_window(self):
         sorting_popup = tk.Toplevel(self.root)
@@ -706,7 +814,7 @@ class GUI:
         if selection == "Name":
             return lambda x: x["game_name"]
         elif selection == "Play Time":
-            return lambda x: int(x["playtime_forever"])
+            return lambda x: self.extract_numeric_value(x["playtime_forever"])
         elif selection == "Time to Beat":
             return lambda x: self.extract_numeric_value(x["main_story"])
         elif selection == "Crit Score":
@@ -717,7 +825,8 @@ class GUI:
             return lambda x: x["game_name"]
 
     
-    def load_game_data(self, key=lambda x: x["game_name"], reverse=False):
+    def load_game_data(self, key=lambda x: x["game_name"]):
+        do_reverse = False
 
         if hasattr(self, 'treeview') and self.treeview.winfo_exists():
             self.treeview.config(yscrollcommand=None, xscrollcommand=None)
@@ -764,11 +873,22 @@ class GUI:
 
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
+        if "game_name" in str(key):
+            do_reverse = False
+        elif "playtime_forever" in str(key):
+            do_reverse = True
+        elif "main_story" in str(key):
+            do_reverse = True
+        elif "crit_score" in str(key):
+            do_reverse = True
+        elif "release_year" in str(key):
+            do_reverse = True
+
         if GAME_CONFIG:
             try:
                 with open(GAME_CONFIG, newline="") as file:
                     reader = csv.DictReader(file)
-                    for row in sorted(reader, key=key, reverse=reverse):
+                    for row in sorted(reader, key=key, reverse=do_reverse):
                         self.treeview.insert("", "end", values=(row['game_name'], row['appid'], self.format_time(int(row['playtime_forever'])),
                                                            row['main_story'], row['completionist'], row['crit_score'].translate(str.maketrans("", "", "(),")),
                                                            row['release_year']))
