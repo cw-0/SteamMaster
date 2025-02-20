@@ -1,0 +1,17 @@
+# Virtual Environs
+venv/
+env/
+.env/
+
+# Sensitive Files
+.env
+
+# Main Configs
+Assets/Configs/config.ini
+Assets/Configs/game_config.csv
+
+# Profile PFP
+Assets/Images/profile.jpg
+
+# Game Journal Configs
+Assets/Programs/GameJournal/Journal Assets/config.ini
