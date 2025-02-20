@@ -15,3 +15,6 @@ Assets/Images/profile.jpg
 
 # Game Journal Configs
 Assets/Programs/GameJournal/Journal Assets/config.ini
+
+# Logs
+logs/index.json

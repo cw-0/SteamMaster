@@ -1,3 +1,4 @@
+import threading
 from howlongtobeatpy import HowLongToBeat
 import math
 import time
@@ -21,7 +22,7 @@ pygame.mixer.init()
 config = ConfigParser()
 load_dotenv()
 
-STEAM_API_KEY = os.getenv("STEAM_KEY")
+
 
 
 
@@ -44,6 +45,12 @@ subheader_font = ("Tahoma", 18)
 
 class GUI:
     def __init__(self):
+        self.STEAM_API_KEY = os.getenv("STEAM_KEY")
+
+        if self.STEAM_API_KEY:
+            self.flag_gotENV = True
+        else:
+            self.flag_gotENV = False
 
         if not config_file.exists():
             config["USER"] = {"Name": "None", "ID": "None"}
@@ -159,6 +166,16 @@ class GUI:
         self.playsound(CLICK_MP3)
 
     def ask_user(self):
+        if not self.flag_gotENV:
+            env_API = simpledialog.askstring("Steam API", "Enter your Steam API")
+            if not env_API:
+                return
+            else:
+                env_API = env_API.strip()
+                self.STEAM_API_KEY = env_API
+                with open(".env", "w") as env_file:
+                    env_file.write(f"STEAM_KEY={env_API}")
+
         user = simpledialog.askstring("Steam User", "Enter your Steam URL")
         if not user:
             return
@@ -310,7 +327,8 @@ class GUI:
             font=subheader_font,
             relief=FLAT,
             bg="#333333",
-            fg="#C4C4C4"
+            fg="#C4C4C4",
+            command=self.wishlist_page
         )
         wishlist_btn.bind("<Enter>", self.sidebar_hover_enter)
         wishlist_btn.bind("<Leave>", self.sidebar_hover_leave)
@@ -331,18 +349,19 @@ class GUI:
         game_journal_btn.bind("<Button-1>", lambda x: self.playsound(CLICK_MP3))
         game_journal_btn.grid(row=6, sticky=tk.W+tk.E)
 
-        refresh_btn = tk.Button(
+        update_btn = tk.Button(
             sidebar,
-            text="Refresh",
+            text="Update / Verify Files",
             font=subheader_font,
             relief=FLAT,
             bg="#333333",
-            fg="#C4C4C4"
+            fg="#C4C4C4",
+            command=self.update_page
         )
-        refresh_btn.bind("<Enter>", self.sidebar_hover_enter)
-        refresh_btn.bind("<Leave>", self.sidebar_hover_leave)
-        refresh_btn.bind("<Button-1>", lambda x: self.playsound(CLICK_MP3))
-        refresh_btn.grid(row=7, sticky=tk.W+tk.E)
+        update_btn.bind("<Enter>", self.sidebar_hover_enter)
+        update_btn.bind("<Leave>", self.sidebar_hover_leave)
+        update_btn.bind("<Button-1>", lambda x: self.playsound(CLICK_MP3))
+        update_btn.grid(row=7, sticky=tk.W+tk.E)
 
 
         account_frame = tk.Frame(self.root)
@@ -362,7 +381,8 @@ class GUI:
             font=subheader_font,
             relief=FLAT,
             bg="#333333",
-            fg="#C4C4C4"
+            fg="#C4C4C4",
+            command=lambda: webbrowser.open(f"{STEAM_URL}{self.user}")
         )
         account_name.bind("<Enter>", self.sidebar_hover_enter)
         account_name.bind("<Leave>", self.sidebar_hover_leave)
@@ -401,6 +421,11 @@ class GUI:
         event.widget.config(bg="#333333")
 
     def get_pfp(self):
+
+        self.start_animation()
+        threading.Thread(target=self.fetch_profile_pic, daemon=True).start()
+
+    def fetch_profile_pic(self):
         try:
             messagebox.showinfo(
                 title="Profile Picture",
@@ -410,6 +435,7 @@ class GUI:
             response = requests.get(f"{STEAM_URL}{self.user}")
 
             if response.status_code != 200:
+                self.stop_animation()
                 messagebox.showerror(title="Error", message="Failed to connect to steam")
 
             else:
@@ -420,6 +446,7 @@ class GUI:
                 print(pfp_img)
                 r = requests.get(pfp_img)
                 if r.status_code != 200:
+                    self.stop_animation()
                     messagebox.showerror(title="Error", message="Failed to connect to steam")
                 else:
                     try:
@@ -442,25 +469,35 @@ class GUI:
                             self.account_img.config(image=self.profile_tk)
                             self.root.update()
                         except Exception as e:
+                            self.stop_animation()
                             print(e)
 
+                        self.stop_animation()
                         messagebox.showinfo("Completed", "Profile Picture Downloaded Successfully")
 
                     except Exception as e:
+                        self.stop_animation()
                         messagebox.showerror(title="Account Image", message=e)
                         print(e)
         except Exception as e:
+            self.stop_animation()
             messagebox.showerror(title="Error", message=e)
 
     def get_library(self):
         messagebox.showinfo(title="Pulling Library", message="Fetching your Games. This may take a moment. Will notify when done!")
        
+        self.start_animation()
+
+        threading.Thread(target=self.fetch_library_data, daemon=True).start()
+
+    def fetch_library_data(self):
         try:
-            url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={STEAM_API_KEY}&steamid={self.id}&format=json"
+            url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={self.STEAM_API_KEY}&steamid={self.id}&format=json"
             response = requests.get(url)
             print(url)
             print(response.status_code)
             if response.status_code != 200:
+                self.stop_animation()
                 messagebox.showerror(title="Connection Failed", message="Failed to connect to Steam")
                 print("Failed to connect to Steam")
                 return
@@ -533,9 +570,11 @@ class GUI:
 
                 for row in rows:
                     writer.writerow(row)
-        
+
+            self.stop_animation()
             messagebox.showinfo(title="Done", message="Your Library has been updated")
         except Exception as e:
+            self.stop_animation()
             messagebox.showerror(title="Error", message=f"Error: {e}")
             print(e)
         
@@ -914,6 +953,78 @@ class GUI:
         except (ValueError, IndexError):
             return float('inf')
 
+    def wishlist_page(self):
+        messagebox.showinfo(title="Not Available", message="Coming Soon!")
+
+    def update_page(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.side_menu()
+
+        self.root.grid_rowconfigure(0, weight=5, uniform="equal")
+        self.root.grid_rowconfigure(1, weight=1, uniform="equal")
+        self.root.grid_columnconfigure(1, weight=1, uniform="equal")
+        self.root.config(bg="#136b9d")
+
+        button_frame = tk.Frame(self.root)
+        button_frame.config(bg="#136b9d")
+        button_frame.grid(row=0, column=1)
+
+        game_list_btn = tk.Button(
+            button_frame,
+            text="Update Games",
+            font=("Arial", 16),
+            width=15,
+            command=self.get_library)
+        game_list_btn.grid(row=0, column=3, pady=20)
+
+
+    def start_animation(self):
+        self.loading_window = tk.Toplevel(self.root)
+        self.loading_window.title("Loading...")
+        self.loading_window.geometry("400x300")
+        self.loading_window.configure(bg="black")
+
+        self.loading_window.attributes("-topmost", True)
+
+        canvas = tk.Canvas(self.loading_window, width=400, height=300, bg="black", highlightthickness=0)
+        canvas.pack()
+
+        center_x, center_y = 200, 150
+        radius = 80
+        dot_radius = 8
+        num_dots = 10
+
+        self.dots = []
+        for i in range(num_dots):
+            angle = (2 * math.pi / num_dots) * i
+            x = center_x + radius * math.cos(angle)
+            y = center_y + radius * math.sin(angle)
+            dot = canvas.create_oval(x - dot_radius, y - dot_radius, x + dot_radius, y + dot_radius, fill="gray")
+            self.dots.append(dot)
+
+        self.current_dot = 0
+        self.animation_running = True
+
+        def animate_loading():
+            if not self.animation_running:
+                return
+
+            for dot in self.dots:
+                canvas.itemconfig(dot, fill="gray")
+
+            canvas.itemconfig(self.dots[self.current_dot], fill="cyan")
+            self.current_dot = (self.current_dot + 1) % num_dots
+            canvas.after(100, animate_loading)
+
+        animate_loading()
+
+    def stop_animation(self):
+        self.animation_running = False
+        if self.loading_window:
+            self.loading_window.destroy()
+            self.loading_window = None
 
 
 if __name__ == "__main__":
