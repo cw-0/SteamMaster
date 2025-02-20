@@ -216,7 +216,7 @@ class GUI:
     def home(self):
         self.side_menu()
     
-        self.root.grid_rowconfigure(0, weight=3, uniform="equal")
+        self.root.grid_rowconfigure(0, weight=5, uniform="equal")
         self.root.grid_rowconfigure(1, weight=1, uniform="equal")
         self.root.grid_columnconfigure(1, weight=1, uniform="equal")
         self.root.config(bg="#136b9d")
@@ -617,7 +617,7 @@ class GUI:
     def library_page(self):
         self.side_menu()
 
-        self.root.grid_rowconfigure(0, weight=3, uniform="equal")
+        self.root.grid_rowconfigure(0, weight=5, uniform="equal")
         self.root.grid_rowconfigure(1, weight=1, uniform="equal")
         self.root.grid_columnconfigure(1, weight=1, uniform="equal")
         self.root.config(bg="#136b9d")
@@ -625,17 +625,105 @@ class GUI:
         library_notebook = ttk.Notebook(self.root)
         library_notebook.grid(row=0, column=1, sticky="nsew")
 
-        tab1 = ttk.Frame(library_notebook)
+        self.games_tab = ttk.Frame(library_notebook)
         tab2 = ttk.Frame(library_notebook)
 
-        library_notebook.add(tab1, text="Games")
+        library_notebook.add(self.games_tab, text="Games")
         library_notebook.add(tab2, text="Settings")
 
-        self.load_game_data(tab1)
+        self.load_game_data()
+        self.sorting_func()
+    
+        
+
+    def sorting_func(self):
+
+        sort_btn = tk.Button(
+            self.root,
+            text="Sort By",
+            font=("Arial", 16),
+            width=10,
+            command=self.sort_window)
+        sort_btn.grid(row=1, column=1)
+
+    def sort_window(self):
+        sorting_popup = tk.Toplevel(self.root)
+        sorting_popup.config(bg="#333333")
+        sorting_popup.geometry("800x600")
+        sorting_popup.minsize(375, 410)
+
+        header = tk.Label(sorting_popup,
+                        text="Sort By",
+                        font=("Luckiest Guy", 26),
+                        fg="white",
+                        bg="#333333",
+                        relief=SUNKEN,
+                        bd=3)
+        header.pack(ipadx=10, pady=15)
+
+        self.selected_option = tk.StringVar(value="Name")
+        options = [("Name", "Name"),
+                ("Time Played", "Time Played"),
+                ("Time to Beat", "Time to Beat"),
+                ("Crit Score", "Crit Score"),
+                ("Release Year", "Release Year")]
+        
+        for text, value in options:
+            radio = tk.Radiobutton(
+                sorting_popup,
+                text=text,
+                value=value,
+                font=("Impact", 18),
+                fg="white",
+                bg="#333333",
+                variable=self.selected_option,
+                selectcolor="black"
+            )
+            radio.pack(pady="5")
+
+        submit_btn = tk.Button(
+            sorting_popup,
+            text="Submit",
+            font=("Arial", 16),
+            width=10,
+            command=lambda: self.do_sort(sorting_popup))
+        submit_btn.pack(pady=20)
+
+
+    def do_sort(self, window):
+        key = self.get_key()
+
+        if hasattr(self, "treeview") and self.treeview.winfo_exists():
+            self.treeview.destroy()
+
+        self.load_game_data(key=key)
+
+        window.destroy()
+
+    def get_key(self):
+        selection = self.selected_option.get()
+        
+        if selection == "Name":
+            return lambda x: x["game_name"]
+        elif selection == "Play Time":
+            return lambda x: int(x["playtime_forever"])
+        elif selection == "Time to Beat":
+            return lambda x: self.extract_numeric_value(x["main_story"])
+        elif selection == "Crit Score":
+            return lambda x: self.extract_numeric_value(x["crit_score"].translate(str.maketrans("", "", "(),")))
+        elif selection == "Release Year":
+            return lambda x: self.extract_numeric_value(x["release_year"])
+        else:
+            return lambda x: x["game_name"]
 
     
-    def load_game_data(self, tab):
-        self.treeview = ttk.Treeview(tab,
+    def load_game_data(self, key=lambda x: x["game_name"], reverse=False):
+
+        if hasattr(self, 'treeview') and self.treeview.winfo_exists():
+            self.treeview.config(yscrollcommand=None, xscrollcommand=None)
+            self.treeview.destroy()
+
+        self.treeview = ttk.Treeview(self.games_tab,
                                      columns=(
                                          "game_name",
                                          "appid",
@@ -661,13 +749,17 @@ class GUI:
         self.treeview.column("crit_score", width=100)
         self.treeview.column("release_year", width=80)
 
+        if not hasattr(self, 'v_scroll') or not self.v_scroll.winfo_exists():
+            self.v_scroll = tk.Scrollbar(self.games_tab, orient="vertical", command=self.treeview.yview)
+            self.v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.v_scroll = tk.Scrollbar(tab, orient="vertical", command=self.treeview.yview)
-        self.v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        if not hasattr(self, 'h_scroll') or not self.h_scroll.winfo_exists():
+            self.h_scroll = tk.Scrollbar(self.games_tab, orient="horizontal", command=self.treeview.xview)
+            self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.h_scroll = tk.Scrollbar(tab, orient="horizontal", command=self.treeview.xview)
-        self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
 
+        self.v_scroll.config(command=self.treeview.yview)
+        self.h_scroll.config(command=self.treeview.xview)
         self.treeview.configure(yscrollcommand=self.v_scroll.set, xscrollcommand=self.h_scroll.set)
 
         self.treeview.pack(fill=tk.BOTH, expand=True)
@@ -676,7 +768,7 @@ class GUI:
             try:
                 with open(GAME_CONFIG, newline="") as file:
                     reader = csv.DictReader(file)
-                    for row in reader:
+                    for row in sorted(reader, key=key, reverse=reverse):
                         self.treeview.insert("", "end", values=(row['game_name'], row['appid'], self.format_time(int(row['playtime_forever'])),
                                                            row['main_story'], row['completionist'], row['crit_score'].translate(str.maketrans("", "", "(),")),
                                                            row['release_year']))
@@ -689,10 +781,18 @@ class GUI:
         if hours:
             return f"{hours} Hours & {remaining_minutes} Minutes"
         elif not hours and minutes:
-            return f"{remaining_minutes:02} Minutes"
+            if minutes == 1:
+                return f"{remaining_minutes} Minute"
+            else:
+                return f"{remaining_minutes} Minutes"
         elif not hours and not minutes:
             return f"0 Minutes"
 
+    def extract_numeric_value(self, value):
+        try:
+            return float(value.split(" ")[0])
+        except (ValueError, IndexError):
+            return float('inf')
 
 
 
