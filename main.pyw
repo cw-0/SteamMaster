@@ -283,12 +283,15 @@ class GUI:
         branding = tk.Label(
             sidebar,
             text="Steam Master",
-            font=subheader_font,
+            font=("Cooper Black", 20, "bold"),
             relief=RIDGE,
             bd=4,
-            bg="white"
+            fg="white",
+            bg="#1371a4"
         )
         branding.bind("<Button-1>", lambda x: self.open_link("https://github.com/cw-0"))
+        branding.bind("<Enter>", self.branding_hover_enter)
+        branding.bind("<Leave>", self.branding_hover_leave)
         branding.grid(pady=3, ipadx=10, row=1)
 
 
@@ -852,7 +855,7 @@ class GUI:
         
         if selection == "Name":
             return lambda x: x["game_name"]
-        elif selection == "Play Time":
+        elif selection == "Time Played":
             return lambda x: self.extract_numeric_value(x["playtime_forever"])
         elif selection == "Time to Beat":
             return lambda x: self.extract_numeric_value(x["main_story"])
@@ -915,7 +918,7 @@ class GUI:
         if "game_name" in str(key):
             do_reverse = False
         elif "playtime_forever" in str(key):
-            do_reverse = True
+            do_reverse = False
         elif "main_story" in str(key):
             do_reverse = True
         elif "crit_score" in str(key):
@@ -1025,6 +1028,12 @@ class GUI:
         if self.loading_window:
             self.loading_window.destroy()
             self.loading_window = None
+
+    def branding_hover_enter(self, event):
+        event.widget.config(bg="#144377")
+
+    def branding_hover_leave(self, event):
+        event.widget.config(bg="#1371a4")
 
 
 if __name__ == "__main__":
