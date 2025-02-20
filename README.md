@@ -1,4 +1,4 @@
 # Steam-Master
 Program providing information about your steam library, wishlist, your progress in and reviews of the games you play.
 
-![prototype image](Assets/ReadMe/Images/LibraryIMG.png)
+![prototype image](Assets/ReadMe/Images/LibraryIMG2.png)
