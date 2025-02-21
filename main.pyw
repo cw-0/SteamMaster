@@ -10,7 +10,7 @@ from io import BytesIO
 import pygame
 import webbrowser
 import tkinter as tk
-from tkinter import SUNKEN, GROOVE, FLAT, RIDGE, simpledialog, messagebox, ttk
+from tkinter import SUNKEN, GROOVE, FLAT, RIDGE, simpledialog, messagebox, ttk, PhotoImage
 from configparser import ConfigParser
 from pathlib import Path
 from PIL import Image, ImageTk
@@ -29,18 +29,22 @@ load_dotenv()
 config_file = Path.cwd() / "Assets" / "Configs" / "config.ini"
 
 CLICK_MP3 = Path.cwd() / "Assets" / "Sounds" / "buttonclick.mp3"
-LOGO_PATH = Path.cwd() / "Assets" / "Images" / "logo.jpg"
+LOGO_PATH = Path.cwd() / "Assets" / "Images" / "logo.png"
 PFP_PATH = Path.cwd() / "Assets" / "Images" / "profile.jpg"
 GUEST_PATH = Path.cwd() / "Assets" / "Images" / "guest.jpg"
 JOURNAL_APP = Path.cwd() / "Assets" / "Programs" / "GameJournal" / "journalGUI.pyw"
 GAME_CONFIG = Path.cwd() / "Assets" / "Configs" / "game_config.csv"
+ICON_PATH = Path.cwd() / "Assets" / "Images" / "icon.ico"
+
 
 STEAM_URL = "https://steamcommunity.com/id/"
 
 logo_image = Image.open(LOGO_PATH)
 
+
+
 pfp_size = 50, 50
-header_font = ("Comic Sans MS", 28, "bold")
+header_font = ("Comic Sans MS", 32, "bold")
 subheader_font = ("Tahoma", 18)
 
 class GUI:
@@ -66,9 +70,14 @@ class GUI:
         self.root.title("Steam Master")
         self.root.geometry("1400x800")
         self.root.minsize(800, 625)
+        
+        icon_image = Image.open(ICON_PATH)
+        icon_photo = ImageTk.PhotoImage(icon_image)
+
+        self.root.iconphoto(True, icon_photo)
 
         logo_tk = ImageTk.PhotoImage(logo_image.resize((100, 100)))
-        header_logo_tk = ImageTk.PhotoImage(logo_image.resize((150, 150)))
+        header_logo_tk = ImageTk.PhotoImage(logo_image.resize((250, 250)))
 
 
         self.logo_tk = logo_tk
@@ -119,54 +128,61 @@ class GUI:
 
     def setup_win(self):
         self.check = True
-        self.root.config(bg="#333333")
+        self.root.config(bg="#222831") 
 
-
-        header = tk.Label(self.root,
-                            text="Steam Master",
-                            font=header_font,
-                            relief=SUNKEN,
-                            bd=8
-                            )
-        header.pack(pady=5, ipady=5, ipadx=5)
+        header = tk.Label(
+            self.root,
+            text="Steam Master",
+            font=("Helvetica", 28, "bold"),
+            relief=tk.SUNKEN,
+            bd=12,
+            fg="white",
+            bg="#1371a4", 
+        )
+        header.pack(pady=15, ipady=10, ipadx=20)
 
         branding = tk.Label(
             self.root,
             text="Caden Warren",
-            font=subheader_font,
-            relief=RIDGE,
-            bd=4,
+            font=("Arial", 14, "italic"),
+            fg="#EEEEEE",
+            bg="#222831",
+            cursor="hand2",
         )
         branding.bind("<Button-1>", lambda x: self.open_link("https://github.com/cw-0"))
-        branding.pack(pady=3, ipadx=10)
+        branding.pack(pady=3)
 
-        empty = tk.Label(self.root, bg="#333333")
-        empty.pack(pady=5)
-
-        logo = tk.Label(self.root, image=self.header_logo_tk, bg="#333333")
-        logo.pack(pady=15)
-
-        empty = tk.Label(self.root, bg="#333333")
-        empty.pack(pady=5)
+        logo = tk.Label(self.root, image=self.header_logo_tk, bg="#222831")
+        logo.pack(pady=20)
 
         setup_btn = tk.Button(
             self.root,
             text="START",
-            font=("Arial", 16),
-            command=self.ask_user
-            )
+            font=("Arial", 18, "bold"),
+            fg="white",
+            bg="#00ADB5", 
+            activebackground="#005F63",
+            relief=tk.RAISED,
+            bd=6,
+            command=self.ask_user,
+        )
         setup_btn.bind("<Button-1>", lambda x: self.playsound(CLICK_MP3))
-        setup_btn.pack(pady=15)
+        setup_btn.pack(pady=15, ipadx=10, ipady=5)
 
         help_btn = tk.Button(
             self.root,
-            text="HELP", 
-            font=("Arial", 16),
-            command=self.help
-            )
-        help_btn.pack(pady=5)
+            text="HELP",
+            font=("Arial", 18, "bold"),
+            fg="white",
+            bg="#FF5722", 
+            activebackground="#C41C00",
+            relief=tk.RAISED,
+            bd=6,
+            command=self.help,
+        )
         help_btn.bind("<Button-1>", lambda x: self.playsound(CLICK_MP3))
-        help_btn.pack(pady=5, ipadx=5)
+        help_btn.pack(pady=5, ipadx=10, ipady=5)
+
 
 
     def open_link(self, link):
@@ -1011,6 +1027,8 @@ class GUI:
         self.loading_window.geometry("400x300")
         self.loading_window.configure(bg="black")
 
+        self.loading_window.protocol("WM_DELETE_WINDOW", lambda: self.verify_exit(self.loading_window))
+
         self.loading_window.attributes("-topmost", True)
 
         canvas = tk.Canvas(self.loading_window, width=400, height=300, bg="black", highlightthickness=0)
@@ -1057,6 +1075,11 @@ class GUI:
     def branding_hover_leave(self, event):
         event.widget.config(bg="#1371a4")
 
+    def verify_exit(self, window):
+        if messagebox.askyesno(title="Cancle", message="Are you sure you would like to close the loading window?"):
+            window.destroy()
+        else:
+            return
 
 if __name__ == "__main__":
     app = GUI()
