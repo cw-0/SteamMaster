@@ -76,12 +76,20 @@ class GUI:
 
         try:
             profile_image = Image.open(PFP_PATH)
+            profile_tk_original = ImageTk.PhotoImage(profile_image)
+            self.profile_tk_original = profile_tk_original
+
             profile_tk = ImageTk.PhotoImage(profile_image.resize((pfp_size)))
             self.profile_tk = profile_tk
         except FileNotFoundError:
+            self.profile_tk_original = None
             self.profile_tk = None
 
         guest_image = Image.open(GUEST_PATH)
+
+        guest_tk_original = ImageTk.PhotoImage(guest_image)
+        self.guest_tk__original = guest_tk_original
+
         guest_tk = ImageTk.PhotoImage(guest_image.resize((pfp_size)))
         self.guest_tk = guest_tk
 
@@ -247,6 +255,16 @@ class GUI:
         home_notebook.add(tab1, text="Profile")
         home_notebook.add(tab2, text="Settings")
 
+        self.show_profile = tk.Label(
+            tab1,
+            image=(self.profile_tk_original if self.profile_tk_original else self.guest_tk__original),
+            font=subheader_font,
+            relief=FLAT,
+            bg="#333333",
+            fg="#C4C4C4"
+        )
+        self.show_profile.pack(pady=50)
+        
         show_user = tk.Label(tab1,
                              text=f"Steam Name: {self.user}",
                              font=("Helvetica", 16))
@@ -465,11 +483,15 @@ class GUI:
                         
                         
                         profile_image = Image.open(PFP_PATH)
+                        profile_tk_original = ImageTk.PhotoImage(profile_image)
+                        self.profile_tk_original = profile_tk_original
+
                         profile_tk = ImageTk.PhotoImage(profile_image.resize((pfp_size)))
                         self.profile_tk = profile_tk
                         
                         try:
                             self.account_img.config(image=self.profile_tk)
+                            self.show_profile.config(image=self.profile_tk_original)
                             self.root.update()
                         except Exception as e:
                             self.stop_animation()
