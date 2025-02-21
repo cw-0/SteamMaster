@@ -45,7 +45,7 @@ logo_image = Image.open(LOGO_PATH)
 
 pfp_size = 50, 50
 header_font = ("Comic Sans MS", 32, "bold")
-subheader_font = ("Tahoma", 18)
+subheader_font = ("Tahoma", 18, "bold")
 
 class GUI:
     def __init__(self):
@@ -418,7 +418,7 @@ class GUI:
             font=subheader_font,
             relief=FLAT,
             bg="#333333",
-            fg="#C4C4C4",
+            fg="white",
             command=lambda: webbrowser.open(f"{STEAM_URL}{self.user}")
         )
         account_name.bind("<Enter>", self.sidebar_hover_enter)
