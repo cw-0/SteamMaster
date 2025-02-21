@@ -20,4 +20,4 @@ Provides easy-to-read insights and statistics about your Steam profile, with det
 ![prototype image](Assets/ReadMe/Images/Start_IMG.png)
 ![prototype image](Assets/ReadMe/Images/Home_IMG.png)
 ![prototype image](Assets/ReadMe/Images/Library_IMG.png)
-![prototype image](Assets/ReadMe/Images/Journal_IMG.png)
+![prototype image](Assets/ReadMe/Images/Journal_IMG2.png)
