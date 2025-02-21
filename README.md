@@ -17,7 +17,7 @@ Provides easy-to-read insights and statistics about your Steam profile, with det
 - Game Journal: Includes a personal game journal for recording notes, thoughts, or progress on each game.
 - This program is ideal for gamers who want to analyze their Steam library, improve backlog management, and maintain detailed game records.
 
-![prototype image](Assets/ReadMe/Images/Start_IMG.png)
+![prototype image](Assets/ReadMe/Images/Start_IMG2.png)
 ![prototype image](Assets/ReadMe/Images/Home_IMG.png)
 ![prototype image](Assets/ReadMe/Images/Library_IMG.png)
-![prototype image](Assets/ReadMe/Images/Journal_IMG2.png)
+![prototype image](Assets/ReadMe/Images/Journal_IMG.png)
