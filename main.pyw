@@ -160,7 +160,7 @@ class GUI:
             text="START",
             font=("Arial", 18, "bold"),
             fg="white",
-            bg="#00ADB5", 
+            bg="#137daf", 
             activebackground="#005F63",
             relief=tk.RAISED,
             bd=6,
@@ -174,11 +174,12 @@ class GUI:
             text="HELP",
             font=("Arial", 18, "bold"),
             fg="white",
-            bg="#FF5722", 
+            bg="#ff8400", 
             activebackground="#C41C00",
             relief=tk.RAISED,
             bd=6,
-            command=self.help,
+            width=6,
+            command=self.help
         )
         help_btn.bind("<Button-1>", lambda x: self.playsound(CLICK_MP3))
         help_btn.pack(pady=5, ipadx=10, ipady=5)
