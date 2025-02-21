@@ -4,11 +4,14 @@ import re
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, RAISED, SUNKEN, messagebox
+from PIL import ImageTk, Image
 from configparser import ConfigParser
 
 config = ConfigParser(interpolation=None)
 
 p = Path(__file__).parent / "Journal Assets" / "config.ini"
+
+ICON_PATH = Path(__file__).parent / "Journal Assets" / "GameJournal.ico"
 
 class GUI:
     
@@ -56,6 +59,11 @@ class GUI:
                                relief=SUNKEN
                                )
         self.header.pack(ipadx=15, pady=10)
+
+        icon_image = Image.open(ICON_PATH)
+        icon_photo = ImageTk.PhotoImage(icon_image)
+
+        self.root.iconphoto(True, icon_photo)
 
         style = ttk.Style()
         style.theme_use("clam")

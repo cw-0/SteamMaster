@@ -15,4 +15,7 @@ Program providing easy to read information about your Steam Profile. Includes Ga
 - Release Year of Each Game
 - A Game Journal
 
-![prototype image](Assets/ReadMe/Images/LibraryIMG2.png)
+![prototype image](Assets/ReadMe/Images/Start_IMG.png)
+![prototype image](Assets/ReadMe/Images/Home_IMG.png)
+![prototype image](Assets/ReadMe/Images/Library_IMG.png)
+![prototype image](Assets/ReadMe/Images/Journal_IMG.png)
