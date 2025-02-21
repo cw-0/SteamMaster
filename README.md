@@ -8,7 +8,7 @@ Program providing easy to read information about your Steam Profile. Includes Ga
 - App IDs for All Games
 - Time Played in Each Game
 - Total Time Played
-- Average Time it Takes to Beat Each Game
+- Average Time it Takes Most Players to Beat Each Game
 - Time it Would Take to Beat Your Entire Library
 - Average Time it Takes to 100% Complete Each Game
 - Critics Review Score of Each Game
