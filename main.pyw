@@ -1,3 +1,4 @@
+import inspect
 import threading
 from howlongtobeatpy import HowLongToBeat
 import math
@@ -65,6 +66,9 @@ class GUI:
         self.check = False
         self.user = None
         self.id = None
+        self.flag_reverse = False
+        self.new_color = None
+        self.last_selected_sort = "Name"
 
         self.root = tk.Tk()
         self.root.title("Steam Master")
@@ -795,6 +799,7 @@ class GUI:
             command=self.sort_window)
         sort_btn.grid(row=0, column=3, pady=20)
 
+
         totals_frame = tk.Frame(bottom_frame)
         totals_frame.grid(row=1, column=3)
 
@@ -841,6 +846,8 @@ class GUI:
         sorting_popup.geometry("800x600")
         sorting_popup.minsize(375, 410)
 
+        # self.flag_reverse = False
+
         header = tk.Label(sorting_popup,
                         text="Sort By",
                         font=("Luckiest Guy", 26),
@@ -850,7 +857,7 @@ class GUI:
                         bd=3)
         header.pack(ipadx=10, pady=15)
 
-        self.selected_option = tk.StringVar(value="Name")
+        self.selected_option = tk.StringVar(value=self.last_selected_sort)
         options = [("Name", "Name"),
                 ("Time Played", "Time Played"),
                 ("Time to Beat", "Time to Beat"),
@@ -870,6 +877,15 @@ class GUI:
             )
             radio.pack(pady="5")
 
+        self.reverse_btn = tk.Button(
+            sorting_popup,
+            text="Reverse",
+            font=("Arial", 16),
+            width=10,
+            bg=self.new_color if self.new_color else "green",
+            command=self.change_reverse)
+        self.reverse_btn.pack(pady=20)
+
         submit_btn = tk.Button(
             sorting_popup,
             text="Submit",
@@ -879,8 +895,30 @@ class GUI:
         submit_btn.pack(pady=20)
 
 
+
     def do_sort(self, window):
         key = self.get_key()
+        last_selection = (inspect.getsourcelines(key)[0][0]).split("\"")[1]
+        print(f"Last Selection: {last_selection}")
+        
+        
+
+        if last_selection == "game_name":
+            self.last_selected_sort = "Name"
+        elif last_selection == "playtime_forever":
+            self.last_selected_sort = "Time Played"
+        elif last_selection == "main_story":
+            self.last_selected_sort = "Time to Beat"
+        elif last_selection == "crit_score":
+            self.last_selected_sort = "Crit Score"
+        elif last_selection == "release_year":
+            self.last_selected_sort = "Release Year"
+        else:
+            print("Error gettings last selected sort")
+
+        print(f"Self Last Selection: {self.last_selected_sort}")
+
+            
 
         if hasattr(self, "treeview") and self.treeview.winfo_exists():
             self.treeview.destroy()
@@ -954,16 +992,22 @@ class GUI:
 
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
-        if "game_name" in str(key):
-            do_reverse = False
-        elif "playtime_forever" in str(key):
-            do_reverse = False
-        elif "main_story" in str(key):
-            do_reverse = True
-        elif "crit_score" in str(key):
-            do_reverse = True
-        elif "release_year" in str(key):
-            do_reverse = True
+        read_key = inspect.getsourcelines(key)[0][0]
+        if "game_name" in read_key:
+            print(f"{read_key}")
+            do_reverse = False if not self.flag_reverse else True
+        elif "playtime_forever" in read_key:
+            print(f"{read_key}")
+            do_reverse = True if not self.flag_reverse else False
+        elif "main_story" in read_key:
+            print(f"{read_key}")
+            do_reverse = True if not self.flag_reverse else False
+        elif "crit_score" in read_key:
+            print(f"{read_key}")
+            do_reverse = True if not self.flag_reverse else False
+        elif "release_year" in read_key:
+            print(f"{read_key}")
+            do_reverse = True if not self.flag_reverse else False
 
         if GAME_CONFIG:
             try:
@@ -1081,6 +1125,13 @@ class GUI:
             window.destroy()
         else:
             return
+
+    def change_reverse(self):
+        self.flag_reverse = not self.flag_reverse
+        self.new_color = "red" if self.flag_reverse else "green"
+        self.reverse_btn.config(bg=self.new_color)
+        
+
 
 if __name__ == "__main__":
     app = GUI()
